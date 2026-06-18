@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IgboTime Clock</title>
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    background: #111;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .clock-igbo {
+    background: #1a0f05;
+    border-radius: 16px;
+    padding: 2.5rem 3rem;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    border: 1px solid #3d2008;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .clock-igbo::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #8b3a00, #e07020, #8b3a00);
+  }
+
+  .date-line {
+    color: #c87c3a;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem;
+    opacity: 0.9;
+  }
+
+  .time-display {
+    font-size: clamp(1.5rem, 6vw, 2.75rem);
+    color: #f0a050;
+    letter-spacing: 0.05em;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .colon {
+    animation: blink 1s step-end infinite;
+    display: inline-block;
+  }
+
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: #3d2008;
+    margin: 1rem auto;
+  }
+
+  .market-day-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: #7a4010;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+    font-family: sans-serif;
+  }
+
+  .market-day {
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    color: #e8823a;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .footer-label {
+    margin-top: 1.2rem;
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: #4a2008;
+    text-transform: uppercase;
+    font-family: sans-serif;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  @media (max-width: 520px) {
+    .clock-igbo { padding: 2rem 1.5rem; border-radius: 12px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="clock-igbo">
+    <div class="date-line">{{ stdDateLine }}</div>
+    <div class="time-display">
+      {{ hh }}<span class="colon">:</span>{{ mm }}<span class="colon">:</span>{{ ss }}
+    </div>
+    <div class="divider"></div>
+    <div class="market-day-label">Ụbọchị Ahịa</div>
+    <div class="market-day">{{ igboDay }}</div>
+    <div class="footer-label">IgboTime Clock with Vue.js</div>
+  </div>
+</div>
+<script>
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+createApp({
+  setup() {
+    const now = ref(new Date());
+    let timer;
+    onMounted(() => { timer = setInterval(() => { now.value = new Date(); }, 1000); });
+    onUnmounted(() => clearInterval(timer));
+    const pad = n => String(n).padStart(2, '0');
+    const hh = computed(() => pad(now.value.getHours()));
+    const mm = computed(() => pad(now.value.getMinutes()));
+    const ss = computed(() => pad(now.value.getSeconds()));
+    const dayNames = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const stdDateLine = computed(() => {
+      const d = now.value;
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}  ${dayNames[d.getDay()]}`;
+    });
+    const igboNameArray = ['ORIE', 'AFO', 'NKWO', 'EKE'];
+    const monthArray = [0,31,59,90,120,151,181,212,243,273,304,334];
+    const igboDay = computed(() => {
+      const d = now.value;
+      const adj = [...monthArray];
+      adj[2] = (d.getFullYear() % 4 === 0) ? 60 : 59;
+      return igboNameArray[(d.getDate() + adj[d.getMonth()]) % 4];
+    });
+    return { hh, mm, ss, stdDateLine, igboDay };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
